@@ -2,16 +2,11 @@
 
 ### Usage: 
 
-set up environment variables: (use your own port and webhook api url)
+Default port used is 8080, can use else ports by adding argument after the script.
 
-    expot WEBHOOK_LISTEN_PORT=xxxx
-    export DINGTALK_WEBHOOK_URL=xxxx
-    the example gives a link of dingtalk, other webhooks (slack, Microsoft Teams, etc. can be set separately.)
-
-
-then run the script
+run the script
     
-    python3 webhook_server.py
+    python3 webhook_server.py <port>
 
 ### Run with docker
 

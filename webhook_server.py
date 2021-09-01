@@ -5,6 +5,8 @@ import os
 
 import requests
 
+getEnv = os.environ.get
+
 
 class S(BaseHTTPRequestHandler):
     def _set_response(self):
@@ -31,38 +33,22 @@ class S(BaseHTTPRequestHandler):
                      str(self.path), str(self.headers),
                      post_data.decode('utf-8'))
 
-        try:
-            subject = data['Subject']
-        except KeyError:
-            subject = ''
-        try:
-            message = data['Message']
-        except KeyError:
-            message = ''
-        try:
-            timestamp = data['Timestamp']
-        except KeyError:
-            timestamp = ''
-        try:
-            unsubscrive_url = data['UnsubscribeURL']
-        except KeyError:
-            unsubscrive_url = ''
+        ignored_keys = ['UnsubscribeURL',
+                        'Signature',
+                        'SigningCertURL',
+                        'SignatureVersion']
 
-        msg = f"""
-            Subject: {subject}
-            
-            Message: {message}
-            
-            Time: {timestamp}
-            
-            If you want to unsubscribe, click {unsubscrive_url}
-        """
+        for k in ignored_keys:
+            data.pop(k, None)
+            data.pop(k.lower(), None)
 
-        if self.path == '/api/webhook/dingtalk/':
-            webhook_addr = os.environ.get('DINGTALK_WEBHOOK_URL')
-            msg = "[MINIEYE] " + msg
-            send_message_dingtalk(msg, webhook_addr)
+        msg = '\r\n'.join(["【MINIEYE-WebHook】", json.dumps(data, indent=2)])
 
+        if self.path.startswith('/api/webhook/dingtalk/'):
+            webhook_prefix = 'https://oapi.dingtalk.com/robot/send?access_token='
+            access_token = self.path.split('access_token=')[1]
+            addr = f"{webhook_prefix}{access_token}"
+            send_message_dingtalk(msg, addr)
         self._set_response()
         self.wfile.write(
             "POST request for {}".format(self.path).encode('utf-8'))
@@ -82,12 +68,12 @@ def send_message_dingtalk(message, webhook_addr):
 
 
 def run(server_class=HTTPServer, handler_class=S,
-        port=int(os.environ.get('WEBHOOK_LISTEN_PORT'))):
+        port=8080):
     logging.basicConfig(level=logging.INFO)
     server_address = ('', port)
     httpd = server_class(server_address, handler_class)
-    logging.info('Starting the webhook message server at port {}...\n'.format(
-        os.environ.get('WEBHOOK_LISTEN_PORT')))
+    logging.info(
+        'Starting the webhook message server at port {}...\n'.format(port))
     print(httpd)
     try:
         httpd.serve_forever()
