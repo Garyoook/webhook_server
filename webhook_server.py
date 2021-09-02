@@ -49,7 +49,7 @@ class S(BaseHTTPRequestHandler):
             access_token = self.path.split('access_token=')[1]
             if access_token != '':
                 addr = f"{webhook_prefix}{access_token}"
-                send_message_dingtalk_feishu(msg, addr)
+                send_message_dingtalk(msg, addr)
             else:
                 logging.error('No access token is given. \n')
 
@@ -59,7 +59,7 @@ class S(BaseHTTPRequestHandler):
             access_token = self.path.split('access_token=')[1]
             if access_token != '':
                 addr = f"{webhook_prefix}{access_token}"
-                send_message_dingtalk_feishu(msg, addr)
+                send_message_feishu(msg, addr)
             else:
                 logging.error('No access token is given. \n')
 
@@ -68,9 +68,8 @@ class S(BaseHTTPRequestHandler):
             "POST request for {}".format(self.path).encode('utf-8'))
 
 
-def send_message_dingtalk_feishu(message, webhook_addr):
+def send_message_dingtalk(message, webhook_addr):
     # content of data need to be modified based on different webhooks.
-    # 飞书群组机器人webhook文档：https://www.feishu.cn/hc/zh-CN/articles/360024984973
     # 钉钉群组机器人webhook文档：https://developers.dingtalk.com/document/robots/message-types-and-data-format
     data = {
         "msgtype": "text",
@@ -80,6 +79,21 @@ def send_message_dingtalk_feishu(message, webhook_addr):
     }
     headers = {'Content-Type': 'application/json'}
     response = requests.post(webhook_addr, json.dumps(data), headers=headers)
+    print(response)
+
+
+def send_message_feishu(message, webhook_addr):
+    # content of data need to be modified based on different webhooks.
+    # 飞书群组机器人webhook文档：https://www.feishu.cn/hc/zh-CN/articles/360024984973
+    data = {
+        "msg_type": "text",
+        "content": {
+            "text": message
+        }
+    }
+    headers = {'Content-Type': 'application/json'}
+    response = requests.post(webhook_addr, json.dumps(data),
+                             headers=headers)
     print(response)
 
 
