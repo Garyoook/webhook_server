@@ -49,16 +49,29 @@ class S(BaseHTTPRequestHandler):
             access_token = self.path.split('access_token=')[1]
             if access_token != '':
                 addr = f"{webhook_prefix}{access_token}"
-                send_message_dingtalk(msg, addr)
+                send_message_dingtalk_feishu(msg, addr)
             else:
                 logging.error('No access token is given. \n')
+
+        # 重复代码， 可用dict优化， 为可读性在增加更多api前暂保持现状。
+        if self.path.startswith('/api/webhook/feishu/?access_token='):
+            webhook_prefix = 'https://open.feishu.cn/open-apis/bot/v2/hook/'
+            access_token = self.path.split('access_token=')[1]
+            if access_token != '':
+                addr = f"{webhook_prefix}{access_token}"
+                send_message_dingtalk_feishu(msg, addr)
+            else:
+                logging.error('No access token is given. \n')
+
         self._set_response()
         self.wfile.write(
             "POST request for {}".format(self.path).encode('utf-8'))
 
 
-def send_message_dingtalk(message, webhook_addr):
+def send_message_dingtalk_feishu(message, webhook_addr):
     # content of data need to be modified based on different webhooks.
+    # 飞书群组机器人webhook文档：https://www.feishu.cn/hc/zh-CN/articles/360024984973
+    # 钉钉群组机器人webhook文档：https://developers.dingtalk.com/document/robots/message-types-and-data-format
     data = {
         "msgtype": "text",
         "text": {
