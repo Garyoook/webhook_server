@@ -44,11 +44,14 @@ class S(BaseHTTPRequestHandler):
 
         msg = '\r\n'.join(["【MINIEYE-WebHook】", json.dumps(data, indent=2)])
 
-        if self.path.startswith('/api/webhook/dingtalk/'):
+        if self.path.startswith('/api/webhook/dingtalk/?access_token='):
             webhook_prefix = 'https://oapi.dingtalk.com/robot/send?access_token='
             access_token = self.path.split('access_token=')[1]
-            addr = f"{webhook_prefix}{access_token}"
-            send_message_dingtalk(msg, addr)
+            if access_token != '':
+                addr = f"{webhook_prefix}{access_token}"
+                send_message_dingtalk(msg, addr)
+            else:
+                logging.error('No access token is given. \n')
         self._set_response()
         self.wfile.write(
             "POST request for {}".format(self.path).encode('utf-8'))
